@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>STET Hindi Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: sticky tab bar over one column. Progress is drawn as an OMR answer sheet, the paper the exam is marked on. */
+  --bg:#EDF0F6; --surface:#FFFFFF; --surface2:#F4F6FB; --ink:#14203B; --muted:#586582; --line:#D6DCE9;
+  --accent:#C2334D; --accent-ink:#FFFFFF; --accent-soft:#F8E4E8;
+  --hindi:#2A4A9C; --teach:#0E7A76; --other:#A86A00; --rev:#C2334D;
+  --ok:#1E7B4F; --warn:#A86A00; --bad:#B3261E;
+  --f-display:'Tiro Devanagari Hindi',Georgia,'Times New Roman',serif;
+  --f-body:'Hind','Segoe UI',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1322; --surface:#151D33; --surface2:#1B2540; --ink:#E6EBF7; --muted:#9AA7C6; --line:#29345A;
+    --accent:#FF7B91; --accent-ink:#1B0A10; --accent-soft:#3A1F2B;
+    --hindi:#8EA8FF; --teach:#4DD0C6; --other:#F0B44C; --rev:#FF7B91;
+    --ok:#5FD39A; --warn:#F0B44C; --bad:#FF8A80; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1322; --surface:#151D33; --surface2:#1B2540; --ink:#E6EBF7; --muted:#9AA7C6; --line:#29345A;
+  --accent:#FF7B91; --accent-ink:#1B0A10; --accent-soft:#3A1F2B;
+  --hindi:#8EA8FF; --teach:#4DD0C6; --other:#F0B44C; --rev:#FF7B91;
+  --ok:#5FD39A; --warn:#F0B44C; --bad:#FF8A80; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto}
+h1,h2,h3{margin:0;font-family:var(--f-display);font-weight:400;text-wrap:balance;line-height:1.2}
+h2{font-size:1.35rem} h3{font-size:1.1rem}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+textarea{width:100%;resize:vertical}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.label{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px))}
+.topin{max-width:1040px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:12px;padding-top:12px;flex-wrap:wrap}
+.brand h1{font-size:1.5rem;flex:1 1 auto;min-width:0}
+.brand .sub{display:block;font-family:var(--f-body);font-size:.8rem;color:var(--muted);letter-spacing:.02em;margin-top:2px}
+.pill{font-family:var(--f-mono);font-size:.78rem;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;white-space:nowrap}
+.pill b{color:var(--accent);font-weight:500}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 12px;font-size:.85rem}
+.iconbtn:hover{border-color:var(--ink)}
+.tabs{display:flex;gap:2px;overflow-x:auto;margin-top:8px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:transparent;padding:10px 14px;font-weight:500;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab:hover{color:var(--ink)}
+
+main{padding-block:20px 56px;display:grid;gap:20px}
+.panel{display:grid;gap:20px}
+.panel[hidden]{display:none!important}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0}
+.card>h2,.card>h3{margin-bottom:12px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:20px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-width:0}
+.stat .v{font-family:var(--f-mono);font-size:1.7rem;font-weight:500;line-height:1.1;margin-top:4px}
+.stat .d{font-size:.82rem;color:var(--muted);margin-top:4px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;font-weight:500}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.sm{padding:4px 10px;font-size:.82rem}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.fchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:.82rem}
+.fchip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip{display:inline-block;font-size:.72rem;font-weight:600;border-radius:999px;padding:1px 9px;white-space:nowrap;color:var(--c,var(--muted));border:1px solid color-mix(in srgb,var(--c,var(--muted)) 45%,transparent);background:color-mix(in srgb,var(--c,var(--muted)) 10%,transparent)}
+.s-H{--c:var(--hindi)} .s-T{--c:var(--teach)} .s-O{--c:var(--other)} .s-R{--c:var(--rev)}
+.ok{--c:var(--ok)} .warn{--c:var(--warn)} .bad{--c:var(--bad)}
+
+/* OMR bubble checkbox */
+.omr{width:24px;height:24px;border-radius:50%;border:2px solid var(--muted);background:transparent;flex:none;padding:0;display:grid;place-items:center;margin-top:1px}
+.omr:hover{border-color:var(--accent)}
+.omr[aria-checked="true"]{background:var(--ink);border-color:var(--ink)}
+.omr[aria-checked="true"]::after{content:"";width:9px;height:5px;border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(-45deg) translate(1px,-1px)}
+
+/* tasks */
+.tasks{display:grid;gap:2px}
+.task{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.task:first-child{border-top:0}
+.task .tx{min-width:0}
+.task.done .tx>.t{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--muted) 60%,transparent)}
+.task .meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px;font-size:.78rem;color:var(--muted)}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:2px;font-size:inherit}
+
+/* OMR sheet */
+.sheet{background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:var(--r);padding:14px 14px 16px;position:relative}
+.sheet::before,.sheet::after{content:"";display:block;height:5px;background:repeating-linear-gradient(90deg,var(--ink) 0 9px,transparent 9px 18px);opacity:.75}
+.sheet::before{margin-bottom:12px}.sheet::after{margin-top:12px}
+.bubbles{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:8px}
+.bub{aspect-ratio:1;border-radius:50%;border:2px solid var(--accent);background:var(--surface);font-family:var(--f-mono);font-size:.68rem;padding:0;color:var(--accent);position:relative;display:grid;place-items:center;min-width:0}
+.bub.full{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.bub.part{background:conic-gradient(var(--ink) var(--p,0%),var(--surface) 0);color:var(--ink);border-color:var(--ink)}
+.bub.part span{background:var(--surface);border-radius:50%;width:62%;height:62%;display:grid;place-items:center}
+.bub.late{border-style:dashed}
+.bub.now{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--accent)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid var(--accent);background:var(--surface);vertical-align:-2px;margin-right:5px}
+.legend i.f{background:var(--ink);border-color:var(--ink)} .legend i.l{border-style:dashed}
+
+/* ring + bars */
+.ringwrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.ring text{font-family:var(--f-mono);fill:var(--ink)}
+.bar{height:10px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--c,var(--accent))}
+.subjrow{display:grid;gap:6px;padding:12px 0;border-top:1px solid var(--line)}
+.subjrow:first-of-type{border-top:0;padding-top:0}
+.subjhead{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+
+/* plan */
+.phase{padding:8px 2px 0}
+.phase h3{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.day.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.dayhead{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;background:transparent;border:0;padding:12px 14px}
+.dayno{font-family:var(--f-mono);font-size:.78rem;border:1px solid var(--line);border-radius:6px;padding:4px 8px;min-width:54px;text-align:center;background:var(--surface2)}
+.dayhead .f{font-weight:600}
+.dayhead .d{font-size:.8rem;color:var(--muted)}
+.daybody{padding:0 14px 14px;border-top:1px solid var(--line)}
+.daybody[hidden]{display:none}
+.daybody .tasks{padding-top:4px}
+.notebox{margin-top:8px}
+.notebox label{display:block;margin-bottom:4px}
+
+/* syllabus */
+.unit{display:grid;gap:10px}
+.unithead{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.topic{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:grid;gap:10px;min-width:0}
+.topic .nm{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.topic .hi{font-family:var(--f-display);font-size:1.15rem}
+.topic .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:5px 11px;font-size:.8rem;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg.cw button[aria-pressed="true"][data-c="1"]{background:var(--bad);color:#fff}
+.seg.cw button[aria-pressed="true"][data-c="2"]{background:var(--warn);color:#fff}
+.seg.cw button[aria-pressed="true"][data-c="3"]{background:var(--ok);color:#fff}
+.stbtn{border:1px solid var(--line);background:var(--surface2);border-radius:8px;padding:5px 12px;font-size:.8rem;font-weight:600}
+.stbtn[data-s="1"]{border-color:var(--hindi);color:var(--hindi)}
+.stbtn[data-s="2"]{background:var(--ok);border-color:var(--ok);color:#fff}
+details.pts summary{cursor:pointer;color:var(--muted);font-size:.85rem}
+details.pts ul{margin:8px 0 0;padding-left:20px;display:grid;gap:3px;font-size:.9rem}
+
+/* focus */
+.clock{font-family:var(--f-mono);font-size:clamp(3rem,14vw,5.5rem);font-weight:500;line-height:1;letter-spacing:-.02em}
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:10px}
+.field{display:grid;gap:4px}
+.field span{font-size:.78rem;color:var(--muted);font-weight:600}
+.err{color:var(--bad);font-size:.85rem;min-height:1.2em}
+.sess{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:.9rem}
+.sess:first-of-type{border-top:0}
+
+/* tables / charts */
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+svg.chart{width:100%;height:auto;display:block}
+.chart .axis{stroke:var(--line);stroke-width:1}
+.chart .lbl{fill:var(--muted);font:10px var(--f-mono)}
+.chart .val{fill:var(--ink);font:10px var(--f-mono)}
+.chart .goal{stroke:var(--accent);stroke-dasharray:4 3;stroke-width:1.5}
+.chart .b{fill:var(--hindi)} .chart .b.cur{fill:var(--accent)}
+
+/* guide */
+.guide ul{margin:6px 0 0;padding-left:20px;display:grid;gap:4px}
+.guide h3{margin-top:4px}
+.blocks{display:grid;gap:8px}
+.blk{display:grid;grid-template-columns:90px 1fr;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
+.blk:first-child{border-top:0}
+
+/* overlay + toast */
+.overlay{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--ink) 55%,transparent);display:grid;place-items:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.overlay[hidden]{display:none}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;width:min(560px,100%);max-height:100%;overflow:auto;display:grid;gap:14px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:.88rem;z-index:60;max-width:calc(100% - 32px)}
+.toast[hidden]{display:none}
+@media (max-width:520px){
+  .dayhead{grid-template-columns:auto 1fr}
+  .dayhead .side{grid-column:1 / -1}
+  .blk{grid-template-columns:1fr;gap:2px}
+  .bubbles{gap:5px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="top"><div class="topin">
+  <div class="brand">
+    <h1>STET Hindi Tracker<span class="sub">Madhyamic Paper I · 30-day plan · 150 marks</span></h1>
+    <span class="pill" id="dayPill"></span>
+    <button class="iconbtn" id="themeBtn" type="button" aria-label="Switch light or dark theme">Theme</button>
+    <button class="iconbtn" id="shareBtn" type="button">Share &amp; backup</button>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-tab="overview" type="button">Overview</button>
+    <button class="tab" role="tab" data-tab="plan" type="button">30-day plan</button>
+    <button class="tab" role="tab" data-tab="syllabus" type="button">Syllabus</button>
+    <button class="tab" role="tab" data-tab="focus" type="button">Focus timer</button>
+    <button class="tab" role="tab" data-tab="mocks" type="button">Mock tests</button>
+    <button class="tab" role="tab" data-tab="guide" type="button">Guide</button>
+  </nav>
+</div></div>
+
+<div class="wrap"><main>
+  <section class="panel" id="p-overview" role="tabpanel"></section>
+  <section class="panel" id="p-plan" role="tabpanel" hidden></section>
+  <section class="panel" id="p-syllabus" role="tabpanel" hidden></section>
+  <section class="panel" id="p-focus" role="tabpanel" hidden></section>
+  <section class="panel" id="p-mocks" role="tabpanel" hidden></section>
+  <section class="panel" id="p-guide" role="tabpanel" hidden></section>
+</main></div>
+
+<div class="overlay" id="shareOv" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+  <div class="row" style="justify-content:space-between"><h2 id="shareTitle">Share &amp; backup</h2><button class="btn sm" type="button" data-act="closeShare">Close</button></div>
+  <p class="small muted">Send the page link to anyone. Each person gets their own copy, with progress saved in their own browser. Nothing you tick here reaches them, and nothing they tick reaches you.</p>
+  <div class="field"><span>Progress summary (paste into WhatsApp or a message)</span><textarea id="sumTxt" rows="5" readonly></textarea></div>
+  <div class="row"><button class="btn primary" type="button" data-act="copySum">Copy summary</button></div>
+  <div class="field"><span>Backup code (move your progress to another phone or browser)</span><textarea id="codeTxt" rows="3" readonly></textarea></div>
+  <div class="row"><button class="btn" type="button" data-act="copyCode">Copy backup code</button></div>
+  <div class="field"><span>Restore from a backup code</span><textarea id="restoreTxt" rows="3" placeholder="Paste a backup code here"></textarea></div>
+  <div class="row"><button class="btn" type="button" data-act="restore">Restore progress</button><span class="err" id="restoreErr"></span></div>
+  <div class="row" style="border-top:1px solid var(--line);padding-top:12px"><button class="btn danger" type="button" data-act="reset" id="resetBtn">Reset all progress</button><span class="small muted">Clears ticks, notes, sessions and mocks on this device.</span></div>
+</div></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script>
+/* ---------- DATA ---------- */
+const SUBJ = {
+  H: { n: "Hindi", marks: 100 },
+  T: { n: "Art of Teaching", marks: 30 },
+  O: { n: "Other skills", marks: 20 },
+  R: { n: "Revision & mock", marks: 0 }
+};
+const PHASES = {
+  1: { n: "Foundation", r: "Days 1 to 10", d: "Core Hindi grammar, teaching basics and a daily dose of other skills." },
+  2: { n: "Depth", r: "Days 11 to 21", d: "Remaining Hindi topics, poetics, methods, evaluation, then a teaching recap." },
+  3: { n: "Practice", r: "Days 22 to 26", d: "Sectional tests, weak-topic repair and your first full mock." },
+  4: { n: "Revision", r: "Days 27 to 30", d: "Rapid revision, two more mocks and a calm last day." }
+};
+const WEEKS = { 1: [1, 7], 2: [8, 14], 3: [15, 21], 4: [22, 28], 5: [29, 30] };
+
+const TOPICS = [
+  { id: "h1", u: "H", hi: "संधि", en: "Sandhi, with types", pts: [
+    "स्वर संधि: दीर्घ, गुण, वृद्धि, यण, अयादि", "व्यंजन संधि और विसर्ग संधि", "संधि-विच्छेद और संधि-निर्माण दोनों का अभ्यास", "मिलते-जुलते उदाहरणों में होने वाला भ्रम"] },
+  { id: "h2", u: "H", hi: "समास", en: "Samas: structure and types", pts: [
+    "अव्ययीभाव, तत्पुरुष (भेद सहित), कर्मधारय, द्विगु, द्वंद्व, बहुव्रीहि", "समास-विग्रह करना और समास पहचानना", "कर्मधारय बनाम बहुव्रीहि, द्विगु बनाम बहुव्रीहि का अंतर"] },
+  { id: "h3", u: "H", hi: "संक्षेपण", en: "Precis: practice on varied prose passages", pts: [
+    "गद्यांश का मूल भाव पहचानना", "अनावश्यक उदाहरण और दोहराव हटाना", "सामान्यतः मूल का लगभग एक-तिहाई शब्द-सीमा", "सरल, सटीक भाषा और उपयुक्त शीर्षक"] },
+  { id: "h4", u: "H", hi: "पारिभाषिक एवं तकनीकी शब्द", en: "Technical terms: spotting them in example sentences", pts: [
+    "प्रशासनिक, शैक्षिक, वैज्ञानिक और विधिक शब्दावली", "अंग्रेज़ी-हिंदी पर्याय, जैसे Affidavit: शपथपत्र, Memorandum: ज्ञापन", "वाक्य में प्रयुक्त पारिभाषिक शब्द की पहचान"] },
+  { id: "h5", u: "H", hi: "मुहावरे और लोकोक्तियाँ", en: "Idioms and proverbs", pts: [
+    "अर्थ और वाक्य में प्रयोग", "मुहावरा और लोकोक्ति का अंतर", "शरीर के अंगों, पशु-पक्षियों और वस्तुओं से बने मुहावरे", "अर्थ के आधार पर सही मुहावरा चुनना"] },
+  { id: "h6", u: "H", hi: "वाक्य-प्रयोग", en: "Correct use of words in sentences", pts: [
+    "संदर्भ के अनुसार शब्द और मुहावरे का प्रयोग", "सही वाक्य चुनना", "प्रयोग की आम गलतियाँ"] },
+  { id: "h7", u: "H", hi: "वाक्य-शुद्धि", en: "Sentence correction", pts: [
+    "लिंग, वचन, कारक, काल और पुरुष संबंधी अशुद्धियाँ", "वर्तनी की शुद्धि", "अनावश्यक या दोहराए गए शब्द", "शब्द-क्रम की त्रुटियाँ"] },
+  { id: "h8", u: "H", hi: "पदबंध", en: "Phrase types", pts: [
+    "संज्ञा, सर्वनाम, विशेषण, क्रिया और क्रियाविशेषण पदबंध", "पदबंध और उपवाक्य में अंतर", "वाक्य में रेखांकित पदबंध का नाम बताना"] },
+  { id: "h9", u: "H", hi: "वाच्य एवं उनके भेद", en: "Voice and its kinds", pts: [
+    "कर्तृवाच्य, कर्मवाच्य, भाववाच्य", "वाच्य-परिवर्तन के नियम", "पहचानने की युक्तियाँ"] },
+  { id: "h10", u: "H", hi: "वाक्य-प्रकार", en: "Sentence types", pts: [
+    "रचना के आधार पर: सरल, संयुक्त, मिश्र", "अर्थ के आधार पर: विधानवाचक, निषेधवाचक, प्रश्नवाचक, आज्ञावाचक, इच्छावाचक, संदेहवाचक, संकेतवाचक, विस्मयादिबोधक", "वाक्य-रूपांतरण"] },
+  { id: "h11", u: "H", hi: "शब्द-शक्ति: व्यंजना", en: "Word power: Vyanjana", pts: [
+    "पृष्ठभूमि के लिए अभिधा और लक्षणा", "व्यंजना की परिभाषा और पहचान", "अभिधा, लक्षणा और व्यंजना की तुलना", "व्यंजना के भेद (शाब्दी और आर्थी)"] },
+  { id: "h12", u: "H", hi: "अलंकार: अर्थालंकार", en: "Upama, Rupak, Utpreksha, Virodhabhas", pts: [
+    "उपमा: उपमेय, उपमान, वाचक शब्द, साधारण धर्म", "रूपक और उपमा में अंतर", "उत्प्रेक्षा के वाचक शब्द: मनु, जनु, मानो, जानो आदि", "विरोधाभास की पहचान"] },
+  { id: "h13", u: "H", hi: "छंद: प्रमुख वार्णिक छंद", en: "Major varnik metres", pts: [
+    "वर्ण, मात्रा, लघु और गुरु", "गण: यगण, मगण, तगण, रगण, जगण, भगण, नगण, सगण", "वार्णिक छंदों के लक्षण और वर्ण-संख्या (अपनी पाठ्य-पुस्तक की सूची देखें)", "वार्णिक और मात्रिक छंद का अंतर"] },
+  { id: "h14", u: "H", hi: "काव्य-गुण", en: "Qualities of poetry", pts: [
+    "माधुर्य, ओज, प्रसाद", "प्रत्येक गुण की पहचान और उदाहरण", "गुण और रस का संबंध"] },
+  { id: "h15", u: "H", hi: "रस आदि", en: "Ras and related terms", pts: [
+    "श्रृंगार (संयोग, वियोग), हास्य, करुण, रौद्र, वीर, भयानक, वीभत्स, अद्भुत, शांत, वात्सल्य", "स्थायी भाव", "विभाव (आलंबन, उद्दीपन), अनुभाव, संचारी भाव", "पंक्ति पढ़कर रस पहचानना"] },
+
+  { id: "t1", u: "T", hi: "Teaching and learning", en: "Meaning, process and characteristics", pts: [
+    "Meaning of teaching and of learning; how they differ", "Process and characteristics of each", "Levels of teaching: memory, understanding, reflective", "Basic learning theories: Pavlov, Thorndike, Skinner, Piaget, Vygotsky"] },
+  { id: "t2", u: "T", hi: "Teaching and instructional objectives", en: "Meaning, types, Bloom's taxonomy", pts: [
+    "General versus specific objectives", "Writing objectives in behavioural terms", "Bloom's cognitive domain, original and revised", "Affective and psychomotor domains"] },
+  { id: "t3", u: "T", hi: "Teaching methods", en: "Types, characteristics, merits and demerits", pts: [
+    "Lecture, demonstration, discussion, question-answer", "Project, problem-solving, heuristic, inductive-deductive, play-way", "Merits and demerits of each; which suits which topic"] },
+  { id: "t4", u: "T", hi: "Lesson plan", en: "Types, format and models", pts: [
+    "Year plan, unit plan, lesson plan", "Standard format of a lesson plan", "Herbartian steps, RCEM, evaluation approach, 5E model"] },
+  { id: "t5", u: "T", hi: "Microteaching and instructional analysis", en: "Cycle, skills, analysis", pts: [
+    "Microteaching cycle: plan, teach, feedback, re-plan, re-teach, re-feedback", "Teaching skills: introduction, explanation, questioning, stimulus variation, reinforcement, closure", "Instructional analysis: task analysis, content analysis, entry behaviour"] },
+  { id: "t6", u: "T", hi: "Effective ecosystem of the classroom", en: "Physical, social and emotional climate", pts: [
+    "Seating, light, ventilation, class size", "Democratic and supportive climate", "Classroom management and discipline", "Teacher-student and peer relationships"] },
+  { id: "t7", u: "T", hi: "Textbook and library", en: "Quality, use and role", pts: [
+    "Qualities of a good textbook: content, language, layout, exercises", "Uses and limitations of a textbook", "School library types and their role in learning"] },
+  { id: "t8", u: "T", hi: "Qualities of a teacher", en: "Personal, professional, academic", pts: [
+    "Personal and professional qualities", "Subject and pedagogical competence", "Roles of a teacher, communication, ethics"] },
+  { id: "t9", u: "T", hi: "Evaluation and assessment for learning", en: "Purpose, types, tools", pts: [
+    "Measurement, assessment and evaluation compared", "Formative, summative, diagnostic; assessment for, as and of learning", "Continuous and comprehensive evaluation", "Tools: tests, rubric, portfolio, checklist, observation; giving feedback"] },
+  { id: "t10", u: "T", hi: "Curriculum", en: "Meaning, principles, types", pts: [
+    "Curriculum versus syllabus", "Principles of curriculum construction", "Subject-centred, learner-centred, activity-centred, core and hidden curriculum", "NCF 2005 and NCF for School Education 2023"] },
+  { id: "t11", u: "T", hi: "Factors affecting teaching and learning", en: "Learner, teacher, environment", pts: [
+    "Learner: readiness, motivation, intelligence, interest, attention", "Teacher, method and content factors", "Home, school and social environment", "Individual differences"] },
+  { id: "t12", u: "T", hi: "Teaching aids and hands-on learning", en: "Audio-visual aids, activity-based learning", pts: [
+    "Audio, visual and audio-visual aids; Dale's cone of experience", "Choosing and using aids; low-cost aids", "Learning by doing: experiments, projects, field trips, laboratories, ICT"] },
+
+  { id: "o1", u: "O", hi: "General knowledge", en: "Bihar, India, current affairs", pts: [
+    "Bihar: history, geography, economy, culture, government schemes", "Indian polity and the Constitution", "Indian history and geography", "General science, awards, books and authors", "Education: NEP 2020, RTE Act 2009", "Current affairs of the last 6 to 12 months"] },
+  { id: "o2", u: "O", hi: "Environmental science", en: "Ecology, pollution, resources", pts: [
+    "Ecosystem, food chain, energy flow", "Air, water, soil pollution", "Climate change, global warming, ozone", "Natural resources, conservation, biodiversity", "Environment laws, protected areas, disaster management"] },
+  { id: "o3", u: "O", hi: "Mathematical aptitude", en: "Arithmetic and basic algebra", pts: [
+    "Number system, HCF and LCM", "Simplification, percentage, ratio and proportion, average", "Profit and loss, simple and compound interest", "Time and work, speed, time and distance", "Mensuration, geometry and algebra basics, data interpretation"] },
+  { id: "o4", u: "O", hi: "Logical reasoning", en: "Verbal and non-verbal reasoning", pts: [
+    "Series, analogy, classification, coding-decoding", "Blood relations, direction sense, ranking", "Syllogism, Venn diagrams, statement and conclusion", "Clocks, calendars, puzzles"] }
+];
+const TOPIC = {}; TOPICS.forEach(t => TOPIC[t.id] = t);
+
+const DAYS = [];
+function phaseOf(n) { return n <= 10 ? 1 : n <= 21 ? 2 : n <= 26 ? 3 : 4; }
+function D(n, focus, ...tasks) {
+  DAYS.push({ n, ph: phaseOf(n), focus, tasks: tasks.map((t, i) => ({ id: "d" + n + "-" + i, s: t[0], t: t[1], m: t[2], x: t[3] })) });
+}
+/* ---------- 30-DAY PLAN ---------- */
+D(1, "Sandhi begins",
+  ["H", "h1", 90, "संधि (1): स्वर संधि (दीर्घ, गुण, वृद्धि, यण, अयादि) with five examples of each"],
+  ["T", "t1", 60, "Teaching and learning: meaning, process, characteristics; how teaching differs from learning"],
+  ["O", "o1", 45, "GK: Bihar history and geography (rivers, districts, key dates)"],
+  ["H", "", 30, "Practice: 25 swar-sandhi MCQs and start your mistake log"]);
+D(2, "Sandhi complete",
+  ["H", "h1", 90, "संधि (2): व्यंजन संधि and विसर्ग संधि; sandhi-vichchhed drills"],
+  ["T", "t2", 60, "Objectives: teaching versus instructional objectives, general versus specific, types"],
+  ["O", "o3", 45, "Maths: number system, divisibility, HCF and LCM"],
+  ["H", "", 30, "Practice: 30 mixed sandhi-vichchhed questions; recap Day 1"]);
+D(3, "Samas begins",
+  ["H", "h2", 90, "समास (1): अव्ययीभाव, तत्पुरुष and its types, कर्मधारय, द्विगु with vigraha"],
+  ["T", "t2", 60, "Bloom's taxonomy: original and revised levels; affective and psychomotor domains"],
+  ["O", "o4", 45, "Reasoning: number and letter series, analogy"],
+  ["H", "", 30, "Practice: 25 samas MCQs"]);
+D(4, "Samas complete",
+  ["H", "h2", 90, "समास (2): द्वंद्व, बहुव्रीहि; the कर्मधारय versus बहुव्रीहि and द्विगु versus बहुव्रीहि confusion"],
+  ["T", "t3", 60, "Teaching methods (1): lecture, demonstration, discussion, question-answer"],
+  ["O", "o2", 45, "EVS: ecosystem, food chains, food webs, energy flow"],
+  ["H", "", 30, "Practice: samas-vigraha for 30 words; recap sandhi"]);
+D(5, "Precis writing",
+  ["H", "h3", 90, "संक्षेपण (1): rules and steps; condense three passages to about one-third"],
+  ["T", "t3", 60, "Teaching methods (2): project, problem-solving, heuristic, inductive-deductive, play-way"],
+  ["O", "o1", 45, "GK: Bihar economy, culture and government schemes"],
+  ["H", "", 30, "Practice: check each precis against its passage and note what you dropped"]);
+D(6, "Technical terms",
+  ["H", "h4", 90, "पारिभाषिक एवं तकनीकी शब्द: administrative, educational, scientific and legal terms"],
+  ["T", "t4", 60, "Lesson plan: year, unit and lesson plans; the standard format"],
+  ["O", "o3", 45, "Maths: simplification, percentage, ratio and proportion"],
+  ["H", "", 30, "Practice: pick out the technical terms in 20 example sentences"]);
+D(7, "Idioms",
+  ["H", "h5", 90, "मुहावरे: 60 idioms with meaning and your own sentence, grouped by body parts, animals, objects"],
+  ["T", "t4", 60, "Lesson plan models: Herbartian steps, RCEM, evaluation approach, 5E"],
+  ["O", "o4", 45, "Reasoning: classification, coding-decoding"],
+  ["H", "", 30, "Practice: 25 muhavara MCQs"]);
+D(8, "Proverbs",
+  ["H", "h5", 90, "लोकोक्तियाँ: 50 proverbs with meaning; how a muhavara differs from a lokokti"],
+  ["T", "t5", 60, "Microteaching: the cycle, teaching skills, merits and limits"],
+  ["O", "o2", 45, "EVS: air, water and soil pollution; causes and control"],
+  ["H", "", 30, "Practice: 30 mixed idiom and proverb questions"]);
+D(9, "Sentence correction",
+  ["H", "h7", 90, "वाक्य-शुद्धि: gender, number, case, tense, person and spelling errors; unnecessary words"],
+  ["T", "t5", 60, "Instructional analysis: task analysis, content analysis, entry behaviour"],
+  ["O", "o1", 45, "GK: Indian polity, Constitution, fundamental rights and duties, Parliament"],
+  ["H", "", 30, "Practice: correct 30 faulty sentences and say which rule applies"]);
+D(10, "Usage and phase check",
+  ["H", "h6", 60, "वाक्य-प्रयोग: using words and idioms correctly in context"],
+  ["T", "t6", 60, "Classroom ecosystem: physical, social and emotional climate; classroom management"],
+  ["O", "o3", 45, "Maths: average, profit and loss, simple and compound interest"],
+  ["R", "", 60, "Phase 1 check: 40 mixed Hindi questions in 40 minutes; mark each topic weak, okay or strong in the Syllabus tab"]);
+
+D(11, "Padbandh",
+  ["H", "h8", 90, "पदबंध: noun, pronoun, adjective, verb and adverb phrases; phrase versus clause"],
+  ["T", "t7", 60, "Textbook and library: qualities of a good textbook, library types, uses"],
+  ["O", "o4", 45, "Reasoning: blood relations, direction sense"],
+  ["H", "", 30, "Practice: underline and name the padbandh in 25 sentences"]);
+D(12, "Vachya",
+  ["H", "h9", 90, "वाच्य: कर्तृ, कर्म, भाववाच्य; conversion rules and identification tricks"],
+  ["T", "t8", 60, "Qualities of a teacher: personal, professional, academic; roles and competencies"],
+  ["O", "o2", 45, "EVS: climate change, global warming, ozone depletion"],
+  ["H", "", 30, "Practice: convert 20 sentences between voices"]);
+D(13, "Sentence types",
+  ["H", "h10", 90, "वाक्य-प्रकार: by structure (सरल, संयुक्त, मिश्र) and by meaning; वाक्य-रूपांतरण"],
+  ["T", "t9", 60, "Evaluation and assessment (1): measurement versus assessment versus evaluation; formative, summative, diagnostic"],
+  ["O", "o1", 45, "GK: Indian history, ancient, medieval and modern milestones"],
+  ["H", "", 30, "Practice: 25 sentence-type and transformation questions"]);
+D(14, "Shabd-shakti",
+  ["H", "h11", 90, "शब्द-शक्ति: अभिधा and लक्षणा as background, then व्यंजना in depth with examples"],
+  ["T", "t9", 60, "Evaluation and assessment (2): CCE, tools, rubric, portfolio, question types, feedback"],
+  ["O", "o3", 45, "Maths: time and work, speed, time and distance"],
+  ["H", "", 30, "Practice: name the shabd-shakti in 20 lines"]);
+D(15, "Alankar (1)",
+  ["H", "h12", 90, "अर्थालंकार (1): उपमा with its four parts, and रूपक; how they differ"],
+  ["T", "t10", 60, "Curriculum: meaning, principles, types; curriculum versus syllabus; NCF 2005 and NCF-SE 2023"],
+  ["O", "o4", 45, "Reasoning: ranking and order, syllogism"],
+  ["H", "", 30, "Practice: 25 upama and rupak questions"]);
+D(16, "Alankar (2)",
+  ["H", "h12", 90, "अर्थालंकार (2): उत्प्रेक्षा with its vachak words, and विरोधाभास; four-way comparison table"],
+  ["T", "t11", 60, "Factors affecting teaching and learning: learner, teacher, environment, home, content"],
+  ["O", "o2", 45, "EVS: natural resources, conservation, biodiversity"],
+  ["H", "", 30, "Practice: 30 mixed alankar identification questions"]);
+D(17, "Chhand (1)",
+  ["H", "h13", 90, "छंद (1): varna, matra, laghu-guru, gana; scansion practice"],
+  ["T", "t12", 60, "Teaching aids: audio, visual, audio-visual; Dale's cone of experience; choosing aids"],
+  ["O", "o1", 45, "GK: India's geography, physiography, rivers, climate, resources"],
+  ["H", "", 30, "Practice: mark laghu and guru on 15 lines"]);
+D(18, "Chhand (2)",
+  ["H", "h13", 90, "छंद (2): major varnik chhands with varna counts and gana patterns; varnik versus matrik"],
+  ["T", "t12", 60, "Hands-on learning: activity-based learning, labs, projects, field trips, low-cost aids, ICT"],
+  ["O", "o3", 45, "Maths: mensuration, geometry basics, algebra basics"],
+  ["H", "", 30, "Practice: 25 chhand identification questions"]);
+D(19, "Kavya-gun",
+  ["H", "h14", 60, "काव्य-गुण: माधुर्य, ओज, प्रसाद with examples and the matching ras"],
+  ["T", "", 60, "Teaching recap 1: topics 1 to 4, rapid notes and 30 MCQs"],
+  ["O", "o4", 45, "Reasoning: Venn diagrams, statement and conclusion"],
+  ["H", "", 45, "Practice: 30 mixed questions on kavya-gun, alankar and chhand"]);
+D(20, "Ras (1)",
+  ["H", "h15", 90, "रस (1): श्रृंगार (संयोग, वियोग), हास्य, करुण, रौद्र, वीर with sthayi bhav"],
+  ["T", "", 60, "Teaching recap 2: lesson plan, microteaching, classroom, textbook, teacher; 30 MCQs"],
+  ["O", "o2", 45, "EVS: environment laws, protected areas, disaster management, sustainable development"],
+  ["H", "", 30, "Practice: name the ras in 20 poetic lines"]);
+D(21, "Ras (2)",
+  ["H", "h15", 90, "रस (2): भयानक, वीभत्स, अद्भुत, शांत, वात्सल्य; विभाव, अनुभाव, संचारी भाव"],
+  ["T", "", 60, "Teaching recap 3: evaluation, curriculum, factors, aids; 30 MCQs"],
+  ["O", "o1", 45, "GK: general science, NEP 2020, RTE Act 2009, current affairs"],
+  ["H", "", 30, "Practice: 30 mixed ras and kavya-gun questions. All Hindi topics are now covered"]);
+
+D(22, "Hindi sectional 1",
+  ["H", "", 60, "Sectional test: संधि, समास, मुहावरे, लोकोक्तियाँ, वाक्य-प्रयोग (50 questions, 45 minutes)"],
+  ["H", "", 45, "Error analysis: write the rule behind every wrong answer in your mistake log"],
+  ["T", "", 60, "Teaching sectional: 40 mixed questions on topics 1 to 6; review errors"],
+  ["O", "", 45, "Maths: data interpretation and mixed practice, timed"]);
+D(23, "Hindi sectional 2",
+  ["H", "", 60, "Sectional test: वाक्य-शुद्धि, पदबंध, वाच्य, वाक्य-प्रकार, शब्द-शक्ति"],
+  ["H", "", 45, "Error analysis and re-learn the rules you missed"],
+  ["T", "", 60, "Teaching sectional: topics 7 to 12; review errors"],
+  ["O", "", 45, "Reasoning: clocks, calendars, puzzles, timed set"]);
+D(24, "Hindi sectional 3",
+  ["H", "", 60, "Sectional test: अलंकार, छंद, काव्य-गुण, रस"],
+  ["H", "", 45, "संक्षेपण (2): three timed passages, plus technical-terms revision"],
+  ["T", "", 45, "Teaching quick quiz on definitions and thinkers, 30 questions"],
+  ["O", "", 60, "GK and EVS mixed set: 60 questions in 40 minutes"]);
+D(25, "Weak-topic day",
+  ["H", "", 120, "Re-study every Hindi topic you marked weak: notes, examples, 20 questions each"],
+  ["T", "", 60, "Re-study weak Teaching topics; redo wrong questions"],
+  ["O", "", 60, "Maths and reasoning: timed practice on your slowest question types"],
+  ["R", "", 30, "Update your confidence ratings in the Syllabus tab"]);
+D(26, "Full mock 1",
+  ["R", "", 150, "Full mock (Hindi 100, Teaching 30, Other skills 20), timed to the official exam duration"],
+  ["R", "", 60, "Analyse the mock: log scores in the Mock tests tab and write mistakes in the log"],
+  ["H", "", 45, "Fix the three weakest Hindi topics the mock exposed"],
+  ["T", "", 30, "Fix the weakest Teaching or Other skills area"]);
+
+D(27, "Rapid revision 1",
+  ["H", "", 90, "Revise from notes: संधि, समास, मुहावरे, लोकोक्तियाँ, वाक्य-शुद्धि, वाक्य-प्रयोग"],
+  ["T", "", 60, "Revise Teaching topics 1 to 6 from notes"],
+  ["O", "", 45, "Revise maths formulas and reasoning shortcuts"],
+  ["H", "", 30, "Timed practice: 30 mixed Hindi questions"]);
+D(28, "Revision 2 and mock 2",
+  ["H", "", 60, "Revise पदबंध, वाच्य, वाक्य-प्रकार, शब्द-शक्ति, अलंकार, छंद, काव्य-गुण, रस"],
+  ["R", "", 150, "Full mock 2, timed"],
+  ["R", "", 45, "Analyse mock 2 and log the scores"],
+  ["T", "", 30, "Revise Teaching topics 7 to 12 from notes"]);
+D(29, "Full mock 3",
+  ["R", "", 150, "Full mock 3, timed; settle your section order and time split"],
+  ["R", "", 60, "Detailed analysis: compare the three mocks and find repeat mistakes"],
+  ["H", "", 45, "Last pass on your weak and okay Hindi topics"],
+  ["O", "", 30, "GK current affairs and EVS quick facts"]);
+D(30, "Calm last day",
+  ["R", "", 60, "Skim one-page notes, formula sheet and idiom list. No new topics"],
+  ["R", "", 30, "Exam logistics: admit card, ID, centre route, pens, water"],
+  ["H", "", 30, "Light revision: 20 easy Hindi questions to stay in rhythm"],
+  ["R", "", 30, "Early night: aim for 7 to 8 hours of sleep"]);
+
+const TOPIC_DAY = {};
+DAYS.forEach(d => d.tasks.forEach(t => { if (t.t && !TOPIC_DAY[t.t]) TOPIC_DAY[t.t] = d.n; }));
+const ALL_TASKS = DAYS.flatMap(d => d.tasks.map(t => Object.assign({ day: d.n }, t)));
+const TASK = {}; ALL_TASKS.forEach(t => TASK[t.id] = t);
+/* ---------- STATE + HELPERS ---------- */
+const KEY = "stet-hindi-30day-v1";
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const z2 = n => String(n).padStart(2, "0");
+function iso(d) { return d.getFullYear() + "-" + z2(d.getMonth() + 1) + "-" + z2(d.getDate()); }
+function parseD(s) { const p = s.split("-").map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+function addDays(s, n) { const d = parseD(s); d.setDate(d.getDate() + n); return iso(d); }
+function diffDays(a, b) { return Math.round((parseD(a) - parseD(b)) / 864e5); }
+function todayS() { return iso(new Date()); }
+function fmt(s, o) { return parseD(s).toLocaleDateString("en-IN", o || { day: "numeric", month: "short" }); }
+function fmtW(s) { return fmt(s, { weekday: "short", day: "numeric", month: "short" }); }
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const hrs = m => (m / 60).toFixed(1).replace(/\.0$/, "");
+
+function defaults() {
+  return { start: todayS(), exam: "", done: {}, topics: {}, notes: {}, sessions: [], goal: 4,
+    mocks: [], mistakes: [], target: 100, theme: "", timer: { mins: 25, subj: "H", state: "idle", end: 0, left: 0 } };
+}
+let S = defaults();
+let storageOk = true;
+function load() {
+  try {
+    const r = localStorage.getItem(KEY);
+    if (r) S = Object.assign(defaults(), JSON.parse(r));
+  } catch (e) { storageOk = false; }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { storageOk = false; } }
+
+const ui = { tab: "overview", week: "all", sf: "all", st: "all", open: new Set(), sylF: "all", q: "", sylOpen: new Set(), resetArm: false };
+
+let toastT;
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2600);
+}
+function copyText(text, srcEl, okMsg) {
+  const fallback = () => {
+    try { srcEl.focus(); srcEl.select(); const ok = document.execCommand && document.execCommand("copy"); toast(ok ? okMsg : "Select the text and copy it"); }
+    catch (e) { toast("Select the text and copy it"); }
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast(okMsg), fallback);
+    else fallback();
+  } catch (e) { fallback(); }
+}
+
+/* ---------- DERIVED ---------- */
+function curDay() { return diffDays(todayS(), S.start) + 1; }
+function dayDate(n) { return addDays(S.start, n - 1); }
+function dayStats(d) {
+  let done = 0, mins = 0, dmins = 0;
+  d.tasks.forEach(t => { mins += t.m; if (S.done[t.id]) { done++; dmins += t.m; } });
+  return { done, total: d.tasks.length, mins, dmins, full: done === d.tasks.length };
+}
+function topicState(id) { return S.topics[id] || { s: 0, c: 0 }; }
+function activitySet() {
+  const a = new Set();
+  Object.keys(S.done).forEach(k => { const v = S.done[k]; if (typeof v === "string") a.add(v); });
+  S.sessions.forEach(x => a.add(x.d));
+  return a;
+}
+function streak() {
+  const a = activitySet(); let d = todayS();
+  if (!a.has(d)) d = addDays(d, -1);
+  let n = 0; while (a.has(d)) { n++; d = addDays(d, -1); }
+  return n;
+}
+function totals() {
+  const cd = curDay();
+  let done = 0, mins = 0, dmins = 0, behind = 0;
+  ALL_TASKS.forEach(t => {
+    mins += t.m;
+    if (S.done[t.id]) { done++; dmins += t.m; } else if (t.day < cd) behind++;
+  });
+  const studied = TOPICS.filter(t => topicState(t.id).s >= 1).length;
+  const revised = TOPICS.filter(t => topicState(t.id).s >= 2).length;
+  const logged = S.sessions.reduce((a, x) => a + x.m, 0);
+  return { done, total: ALL_TASKS.length, mins, dmins, behind, studied, revised, logged, streak: streak(),
+    pct: Math.round(done / ALL_TASKS.length * 100) };
+}
+function dayLine() {
+  const cd = curDay();
+  if (cd < 1) return "Starts in <b>" + (1 - cd) + " day" + (cd === 0 ? "" : "s") + "</b>";
+  if (cd > 30) return "Plan finished";
+  return "Day <b>" + cd + "</b> of 30";
+}
+function chip(s) { return '<span class="chip s-' + s + '">' + esc(SUBJ[s].n) + "</span>"; }
+
+/* ---------- SHARED TASK ROW ---------- */
+function taskRow(t) {
+  const on = !!S.done[t.id];
+  const link = t.t ? ' <button class="linkbtn" type="button" data-act="goTopic" data-id="' + t.t + '">topic</button>' : "";
+  return '<div class="task' + (on ? " done" : "") + '">' +
+    '<button class="omr" type="button" role="checkbox" aria-checked="' + on + '" aria-label="' + esc(t.x) + '" data-act="task" data-id="' + t.id + '"></button>' +
+    '<div class="tx"><div class="t">' + esc(t.x) + '</div><div class="meta">' + chip(t.s) +
+    '<span class="mono">' + t.m + " min</span>" + link + "</div></div></div>";
+}
+
+/* ---------- HEADER ---------- */
+function renderHeader() { $("#dayPill").innerHTML = dayLine(); }
+
+/* ---------- OVERVIEW ---------- */
+function ring(p) {
+  const r = 42, c = 2 * Math.PI * r, off = c * (1 - p / 100);
+  return '<svg class="ring" width="112" height="112" viewBox="0 0 112 112" role="img" aria-label="' + p + ' percent of plan done">' +
+    '<circle cx="56" cy="56" r="' + r + '" fill="none" stroke="var(--line)" stroke-width="10"/>' +
+    '<circle cx="56" cy="56" r="' + r + '" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '" transform="rotate(-90 56 56)"/>' +
+    '<text x="56" y="62" text-anchor="middle" font-size="22" font-weight="500">' + p + '%</text></svg>';
+}
+function sheetHTML() {
+  const cd = curDay();
+  let h = '<div class="bubbles">';
+  DAYS.forEach(d => {
+    const st = dayStats(d), pct = Math.round(st.done / st.total * 100);
+    let cls = "bub";
+    if (st.full) cls += " full"; else if (st.done > 0) cls += " part";
+    else if (d.n < cd) cls += " late";
+    if (d.n === cd) cls += " now";
+    const style = cls.indexOf("part") > -1 ? ' style="--p:' + pct + '%"' : "";
+    const label = "Day " + d.n + ": " + st.done + " of " + st.total + " tasks done";
+    h += '<button class="' + cls + '"' + style + ' type="button" data-act="goDay" data-n="' + d.n + '" aria-label="' + label + '" title="' + label + '"><span>' + d.n + "</span></button>";
+  });
+  return h + "</div>";
+}
+function subjectBlock(s) {
+  const tasks = ALL_TASKS.filter(t => t.s === s);
+  const done = tasks.filter(t => S.done[t.id]).length;
+  const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0;
+  const tops = TOPICS.filter(t => t.u === s);
+  let extra = "";
+  if (tops.length) {
+    const st = tops.filter(t => topicState(t.id).s >= 1).length, rv = tops.filter(t => topicState(t.id).s >= 2).length;
+    extra = "Topics studied " + st + " of " + tops.length + " · revised " + rv;
+  } else extra = "Mocks, analysis and the last-day checklist";
+  const marks = SUBJ[s].marks ? SUBJ[s].marks + " marks" : "No marks, but it decides your score";
+  return '<div class="subjrow s-' + s + '"><div class="subjhead"><b>' + esc(SUBJ[s].n) + '</b><span class="small muted">' + marks + "</span></div>" +
+    '<div class="bar" role="img" aria-label="' + pct + ' percent of ' + esc(SUBJ[s].n) + ' tasks done"><i style="width:' + pct + '%"></i></div>' +
+    '<div class="subjhead small muted"><span>' + done + " of " + tasks.length + " tasks done</span><span>" + extra + "</span></div></div>";
+}
+function attention() {
+  const cd = curDay(), items = [];
+  TOPICS.forEach(t => {
+    const st = topicState(t.id);
+    if (st.c === 1) items.push({ t, why: "Rated weak" });
+    else if (st.s === 0 && TOPIC_DAY[t.id] && TOPIC_DAY[t.id] < cd) items.push({ t, why: "Planned for Day " + TOPIC_DAY[t.id] + ", not started" });
+  });
+  return items;
+}
+function renderOverview() {
+  const T = totals(), cd = curDay();
+  const shown = Math.min(30, Math.max(1, cd)), day = DAYS[shown - 1], ds = dayStats(day);
+  let head;
+  if (cd < 1) head = "Your plan starts on " + fmtW(S.start) + ". Here is Day 1.";
+  else if (cd > 30) head = "The 30 days are over. Day 30 is shown below for reference.";
+  else head = fmtW(dayDate(cd)) + " · " + PHASES[day.ph].n + " phase";
+  const examLine = S.exam ? (() => { const n = diffDays(S.exam, todayS()); return n > 0 ? "<b>" + n + "</b> days to the exam" : n === 0 ? "<b>Exam is today</b>" : "Exam date has passed"; })() : "Add an exam date to see a countdown";
+  const att = attention();
+  const wk = weekMins();
+  const behindNote = T.behind > 0
+    ? '<span class="chip warn">' + T.behind + " task" + (T.behind > 1 ? "s" : "") + " behind</span>"
+    : (cd >= 1 ? '<span class="chip ok">On track</span>' : "");
+  $("#p-overview").innerHTML =
+    '<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-start">' +
+      '<div><div class="label">Today</div><h2>' + dayLine() + ' · ' + esc(day.focus) + '</h2><p class="muted small" style="margin-top:4px">' + head + "</p></div>" +
+      '<div class="row">' + behindNote + '<span class="small muted" id="examLine">' + examLine + "</span></div></div>" +
+      '<div class="tasks" style="margin-top:8px">' + day.tasks.map(taskRow).join("") + "</div>" +
+      '<div class="row" style="margin-top:8px;justify-content:space-between"><span class="small muted mono">' + ds.done + "/" + ds.total + " done · " + hrs(ds.mins) + " h planned</span>" +
+      '<button class="btn sm" type="button" data-act="goDay" data-n="' + shown + '">Open this day in the plan</button></div></div>' +
+
+    '<div class="grid4">' +
+      '<div class="stat"><div class="label">Plan done</div><div class="v">' + T.pct + '%</div><div class="d">' + T.done + " of " + T.total + " tasks</div></div>" +
+      '<div class="stat"><div class="label">Topics studied</div><div class="v">' + T.studied + "/" + TOPICS.length + '</div><div class="d">' + T.revised + " revised</div></div>" +
+      '<div class="stat"><div class="label">Time logged</div><div class="v">' + hrs(T.logged) + ' h</div><div class="d">' + hrs(wk) + " h in the last 7 days</div></div>" +
+      '<div class="stat"><div class="label">Streak</div><div class="v">' + T.streak + '</div><div class="d">day' + (T.streak === 1 ? "" : "s") + " in a row with work done</div></div>" +
+    "</div>" +
+
+    '<div class="grid2">' +
+      '<div class="card"><h3>Your OMR sheet</h3><p class="small muted" style="margin-bottom:12px">One bubble per day. Tap a bubble to open that day.</p>' +
+        '<div class="sheet">' + sheetHTML() + "</div>" +
+        '<div class="legend"><span><i class="f"></i>All done</span><span><i></i>Not yet</span><span><i class="l"></i>Missed</span><span>Ringed = today</span></div></div>' +
+      '<div class="card"><h3>Progress by subject</h3>' +
+        '<div class="ringwrap" style="margin-bottom:12px">' + ring(T.pct) + '<p class="small muted" style="flex:1 1 180px">Hindi carries 100 of the 150 marks, so it gets about two-thirds of your study time in this plan.</p></div>' +
+        ["H", "T", "O", "R"].map(subjectBlock).join("") + "</div>" +
+    "</div>" +
+
+    '<div class="grid2">' +
+      '<div class="card"><h3>Needs attention</h3>' +
+        (att.length ? '<div class="tasks">' + att.slice(0, 8).map(a =>
+          '<div class="task"><span></span><div class="tx"><div class="t">' + esc(a.t.hi) + '</div><div class="meta">' + chip(a.t.u) + "<span>" + a.why + '</span> <button class="linkbtn" type="button" data-act="goTopic" data-id="' + a.t.id + '">open</button></div></div></div>').join("") + "</div>"
+          : '<p class="muted">Nothing flagged. Rate topics weak, okay or strong in the Syllabus tab and the weak ones appear here.</p>') + "</div>" +
+      '<div class="card"><h3>Plan settings</h3><div class="formgrid">' +
+        '<label class="field"><span>First day of the plan</span><input type="date" id="startIn" value="' + S.start + '"></label>' +
+        '<label class="field"><span>Exam date (optional)</span><input type="date" id="examIn" value="' + S.exam + '"></label></div>' +
+        '<div class="row" style="margin-top:12px"><button class="btn" type="button" data-act="push">I missed a day: push plan by 1 day</button></div>' +
+        '<p class="small muted" style="margin-top:8px">Pushing moves every date one day later, so today repeats the previous day.' + (storageOk ? "" : " Saving is blocked in this browser, so progress will be lost when you close the page.") + "</p></div>" +
+    "</div>";
+}
+function weekMins() {
+  let m = 0; const t = todayS();
+  S.sessions.forEach(x => { const d = diffDays(t, x.d); if (d >= 0 && d < 7) m += x.m; });
+  return m;
+}
+/* ---------- PLAN TAB ---------- */
+function chipBtn(group, val, label, cur) {
+  return '<button class="fchip" type="button" data-act="filter" data-g="' + group + '" data-v="' + val + '" aria-pressed="' + (cur === val) + '">' + label + "</button>";
+}
+function renderPlan() {
+  const cd = curDay();
+  let h = '<div class="card"><div class="row" style="gap:16px">' +
+    '<div class="chips" aria-label="Show weeks">' +
+      chipBtn("week", "all", "All 30 days", ui.week) + chipBtn("week", "1", "Week 1", ui.week) + chipBtn("week", "2", "Week 2", ui.week) +
+      chipBtn("week", "3", "Week 3", ui.week) + chipBtn("week", "4", "Week 4", ui.week) + chipBtn("week", "5", "Days 29 to 30", ui.week) + "</div>" +
+    '<div class="chips" aria-label="Show subjects">' +
+      chipBtn("sf", "all", "All subjects", ui.sf) + chipBtn("sf", "H", "Hindi", ui.sf) + chipBtn("sf", "T", "Teaching", ui.sf) + chipBtn("sf", "O", "Other skills", ui.sf) + chipBtn("sf", "R", "Revision &amp; mock", ui.sf) + "</div>" +
+    '<div class="chips" aria-label="Show status">' +
+      chipBtn("st", "all", "Any status", ui.st) + chipBtn("st", "todo", "To do", ui.st) + chipBtn("st", "done", "Done", ui.st) + "</div>" +
+    "</div></div>";
+  let last = 0, shown = 0;
+  DAYS.forEach(d => {
+    if (ui.week !== "all") { const w = WEEKS[ui.week]; if (d.n < w[0] || d.n > w[1]) return; }
+    const vis = d.tasks.filter(t => (ui.sf === "all" || t.s === ui.sf) && (ui.st === "all" || (ui.st === "done" ? S.done[t.id] : !S.done[t.id])));
+    if (!vis.length) return;
+    shown++;
+    if (d.ph !== last) {
+      last = d.ph;
+      h += '<div class="phase"><h3>Phase ' + d.ph + ": " + PHASES[d.ph].n + ' <span class="small muted" style="font-family:var(--f-body)">' + PHASES[d.ph].r + " · " + PHASES[d.ph].d + "</span></h3></div>";
+    }
+    const st = dayStats(d), open = ui.open.has(d.n);
+    const isToday = d.n === cd;
+    let state = "";
+    if (st.full) state = '<span class="chip ok">Done</span>';
+    else if (d.n < cd) state = '<span class="chip warn">Behind</span>';
+    else if (isToday) state = '<span class="chip s-R">Today</span>';
+    const subs = [...new Set(d.tasks.map(t => t.s))].map(chip).join(" ");
+    h += '<article class="day' + (isToday ? " today" : "") + '" id="day-' + d.n + '">' +
+      '<button class="dayhead" type="button" data-act="toggleDay" data-n="' + d.n + '" aria-expanded="' + open + '">' +
+        '<span class="dayno">Day ' + d.n + "</span>" +
+        '<span><span class="f">' + esc(d.focus) + '</span><br><span class="d">' + fmtW(dayDate(d.n)) + " · " + hrs(st.mins) + " h planned</span></span>" +
+        '<span class="side row" style="gap:8px;justify-content:flex-end">' + subs + state + '<span class="mono small">' + st.done + "/" + st.total + "</span></span>" +
+      "</button>" +
+      '<div class="daybody"' + (open ? "" : " hidden") + ">" +
+        '<div class="tasks">' + vis.map(taskRow).join("") + "</div>" +
+        '<div class="row" style="margin-top:6px"><button class="btn sm" type="button" data-act="dayAll" data-n="' + d.n + '">' + (st.full ? "Clear all ticks" : "Mark all done") + "</button></div>" +
+        '<div class="notebox"><label class="label" for="note-' + d.n + '">Notes for Day ' + d.n + '</label>' +
+        '<textarea id="note-' + d.n + '" rows="2" data-note="' + d.n + '" placeholder="What went well, what to revisit">' + esc(S.notes[d.n] || "") + "</textarea></div>" +
+      "</div></article>";
+  });
+  if (!shown) h += '<div class="card"><p class="muted">No tasks match these filters. Try "All subjects" or "Any status".</p></div>';
+  $("#p-plan").innerHTML = h;
+}
+
+/* ---------- SYLLABUS TAB ---------- */
+const STATUS = ["Not started", "Studied", "Revised"];
+function topicCard(t, idx) {
+  const st = topicState(t.id), open = ui.sylOpen.has(t.id), day = TOPIC_DAY[t.id];
+  const cbtn = [[1, "Weak"], [2, "Okay"], [3, "Strong"]].map(c =>
+    '<button type="button" data-act="conf" data-id="' + t.id + '" data-c="' + c[0] + '" aria-pressed="' + (st.c === c[0]) + '">' + c[1] + "</button>").join("");
+  return '<div class="topic" id="topic-' + t.id + '"><div class="nm"><span class="mono small muted">' + z2(idx) + "</span>" +
+    '<span class="hi"' + (t.u === "H" ? ' lang="hi"' : "") + ">" + esc(t.hi) + '</span><span class="small muted">' + esc(t.en) + "</span></div>" +
+    '<div class="controls"><button class="stbtn" type="button" data-act="status" data-id="' + t.id + '" data-s="' + st.s + '" aria-label="Status: ' + STATUS[st.s] + '. Tap to change">' + STATUS[st.s] + "</button>" +
+    '<span class="seg cw" role="group" aria-label="How confident are you">' + cbtn + "</span>" +
+    (day ? '<button class="linkbtn small" type="button" data-act="goDay" data-n="' + day + '">Planned: Day ' + day + "</button>" : '<span class="small muted">Covered in revision</span>') + "</div>" +
+    '<details class="pts"' + (open ? " open" : "") + ' data-id="' + t.id + '"><summary>What to cover</summary><ul>' + t.pts.map(p => "<li" + (t.u === "H" ? ' lang="hi"' : "") + ">" + esc(p) + "</li>").join("") + "</ul></details></div>";
+}
+function renderSyllabus() {
+  const units = [
+    ["H", "Unit I · Hindi", "100 marks"],
+    ["T", "Unit II (A) · Art of Teaching", "30 marks"],
+    ["O", "Unit II (B) · Other skills", "20 marks"]
+  ];
+  const q = ui.q.trim().toLowerCase();
+  let h = '<div class="card"><div class="row" style="gap:16px"><label class="field" style="flex:1 1 220px"><span>Search topics</span><input type="search" id="sylQ" value="' + esc(ui.q) + '" placeholder="Try samas, Bloom, reasoning"></label>' +
+    '<div class="chips" aria-label="Filter topics">' + chipBtn("sylF", "all", "All", ui.sylF) + chipBtn("sylF", "0", "Not started", ui.sylF) + chipBtn("sylF", "1", "Studied", ui.sylF) + chipBtn("sylF", "2", "Revised", ui.sylF) + chipBtn("sylF", "weak", "Weak", ui.sylF) + "</div></div>" +
+    '<p class="small muted" style="margin-top:10px">Hindi terms below are transcribed from the syllabus PDF. Check them against the official notification before you rely on them. The "what to cover" lists are suggestions for each heading.</p></div>';
+  let any = 0;
+  units.forEach(u => {
+    const list = TOPICS.filter(t => t.u === u[0]).filter(t => {
+      const st = topicState(t.id);
+      if (q && (t.hi + " " + t.en + " " + t.pts.join(" ")).toLowerCase().indexOf(q) < 0) return false;
+      if (ui.sylF === "weak") return st.c === 1;
+      if (ui.sylF !== "all") return String(st.s) === ui.sylF;
+      return true;
+    });
+    if (!list.length) return;
+    any += list.length;
+    const all = TOPICS.filter(t => t.u === u[0]);
+    const st = all.filter(t => topicState(t.id).s >= 1).length;
+    h += '<section class="unit"><div class="unithead"><h2>' + u[1] + '</h2><span class="small muted">' + u[2] + " · " + st + " of " + all.length + " studied</span></div>" +
+      '<div class="grid2">' + list.map(t => topicCard(t, TOPICS.indexOf(t) + 1 - TOPICS.findIndex(x => x.u === u[0]))).join("") + "</div></section>";
+  });
+  if (!any) h += '<div class="card"><p class="muted">No topics match. Clear the search or pick "All".</p></div>';
+  $("#p-syllabus").innerHTML = h;
+}
+/* ---------- FOCUS TAB ---------- */
+function timerLeft() {
+  const t = S.timer;
+  if (t.state === "run") return Math.max(0, t.end - Date.now());
+  if (t.state === "pause") return t.left;
+  return t.mins * 60000;
+}
+function clockText() {
+  const s = Math.ceil(timerLeft() / 1000);
+  return z2(Math.floor(s / 60)) + ":" + z2(s % 60);
+}
+function minsToday() { const t = todayS(); return S.sessions.filter(x => x.d === t).reduce((a, x) => a + x.m, 0); }
+
+function weekChart() {
+  const days = [];
+  for (let i = 6; i >= 0; i--) { const d = addDays(todayS(), -i); days.push({ d, m: S.sessions.filter(x => x.d === d).reduce((a, x) => a + x.m, 0) }); }
+  const goal = S.goal * 60, max = Math.max(goal, 60, ...days.map(x => x.m));
+  const W = 320, H = 150, pt = 18, pb = 22, bw = 30, gap = (W - 8 - bw * 7) / 6;
+  const y = m => H - pb - (m / max) * (H - pb - pt);
+  let s = '<svg class="chart" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Study hours for the last 7 days">' +
+    '<line class="axis" x1="0" x2="' + W + '" y1="' + (H - pb) + '" y2="' + (H - pb) + '"/>';
+  days.forEach((x, i) => {
+    const bx = 4 + i * (bw + gap), by = y(x.m), cur = i === 6;
+    if (x.m > 0) s += '<rect class="b' + (cur ? " cur" : "") + '" x="' + bx.toFixed(1) + '" y="' + by.toFixed(1) + '" width="' + bw + '" height="' + (H - pb - by).toFixed(1) + '" rx="3"/>' +
+      '<text class="val" x="' + (bx + bw / 2).toFixed(1) + '" y="' + (by - 4).toFixed(1) + '" text-anchor="middle">' + hrs(x.m) + "h</text>";
+    s += '<text class="lbl" x="' + (bx + bw / 2).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="middle">' + fmt(x.d, { weekday: "short" }) + "</text>";
+  });
+  s += '<line class="goal" x1="0" x2="' + W + '" y1="' + y(goal).toFixed(1) + '" y2="' + y(goal).toFixed(1) + '"/></svg>';
+  return s;
+}
+function renderFocus() {
+  const t = S.timer, run = t.state === "run", pause = t.state === "pause", idle = t.state === "idle";
+  const today = minsToday(), pct = Math.min(100, Math.round(today / (S.goal * 60) * 100));
+  const recent = S.sessions.slice(-8).reverse();
+  $("#p-focus").innerHTML =
+    '<div class="grid2">' +
+    '<div class="card"><h3>Focus timer</h3>' +
+      '<div class="clock" id="clock" aria-live="off">' + clockText() + "</div>" +
+      '<p class="small muted" id="clockSub" style="margin-top:6px">' + (idle ? "Ready" : run ? "Running: " + esc(SUBJ[t.subj].n) : "Paused") + "</p>" +
+      '<div class="row" style="margin-top:14px">' +
+        (idle ? '<button class="btn primary" type="button" data-act="tStart">Start</button>' : "") +
+        (run ? '<button class="btn" type="button" data-act="tPause">Pause</button>' : "") +
+        (pause ? '<button class="btn primary" type="button" data-act="tResume">Resume</button>' : "") +
+        (!idle ? '<button class="btn" type="button" data-act="tFinish">Stop and log time</button><button class="btn" type="button" data-act="tDiscard">Discard</button>' : "") +
+      "</div>" +
+      '<div class="formgrid" style="margin-top:16px">' +
+        '<div class="field"><span>Length</span><div class="seg" role="group" aria-label="Session length">' +
+          [25, 50, 90].map(m => '<button type="button" data-act="tLen" data-m="' + m + '" aria-pressed="' + (t.mins === m) + '"' + (idle ? "" : " disabled") + ">" + m + "</button>").join("") + "</div></div>" +
+        '<label class="field"><span>Custom minutes</span><input type="number" id="tCustom" min="1" max="240" value="' + t.mins + '"' + (idle ? "" : " disabled") + "></label>" +
+        '<label class="field"><span>Subject</span><select id="tSubj"' + (idle ? "" : " disabled") + ">" +
+          ["H", "T", "O", "R"].map(s => '<option value="' + s + '"' + (t.subj === s ? " selected" : "") + ">" + esc(SUBJ[s].n) + "</option>").join("") + "</select></label>" +
+      "</div></div>" +
+
+    '<div class="card"><h3>Today</h3>' +
+      '<div class="subjhead"><b class="mono" style="font-size:1.5rem">' + hrs(today) + ' h</b><span class="small muted">goal ' + S.goal + " h</span></div>" +
+      '<div class="bar" style="margin:8px 0 12px" role="img" aria-label="' + pct + ' percent of today\'s goal"><i style="width:' + pct + '%"></i></div>' +
+      '<label class="field" style="max-width:200px"><span>Daily goal (hours)</span><input type="number" id="goalIn" min="1" max="14" step="0.5" value="' + S.goal + '"></label>' +
+      '<div class="label" style="margin:16px 0 6px">Last 7 days</div>' + weekChart() +
+      '<p class="small muted" style="margin-top:4px">Dashed line is your daily goal. Today is in red.</p></div>' +
+    "</div>" +
+
+    '<div class="grid2">' +
+    '<div class="card"><h3>Log time by hand</h3><p class="small muted" style="margin-bottom:10px">Studied without the timer? Add it here.</p>' +
+      '<div class="formgrid"><label class="field"><span>Minutes</span><input type="number" id="manMin" min="1" max="600" placeholder="45"></label>' +
+      '<label class="field"><span>Subject</span><select id="manSubj">' + ["H", "T", "O", "R"].map(s => '<option value="' + s + '">' + esc(SUBJ[s].n) + "</option>").join("") + "</select></label></div>" +
+      '<div class="row" style="margin-top:10px"><button class="btn" type="button" data-act="manAdd">Add session</button><span class="err" id="manErr"></span></div></div>' +
+    '<div class="card"><h3>Recent sessions</h3>' +
+      (recent.length ? recent.map(x => '<div class="sess"><span>' + chip(x.s) + ' <span class="mono small">' + x.m + ' min</span> <span class="small muted">' + fmt(x.d) + '</span></span><button class="btn sm" type="button" data-act="delSess" data-id="' + x.id + '" aria-label="Delete this session">Delete</button></div>').join("")
+        : '<p class="muted">No sessions yet. Start the timer and your time shows up here.</p>') + "</div>" +
+    "</div>";
+}
+function updateClock() {
+  const c = $("#clock"); if (c) c.textContent = clockText();
+}
+function logSession(m, s) {
+  if (m < 1) return;
+  S.sessions.push({ id: uid(), d: todayS(), m: Math.round(m), s });
+}
+function beep() {
+  try {
+    const A = window.AudioContext || window.webkitAudioContext; if (!A) return;
+    const c = new A(), o = c.createOscillator(), g = c.createGain();
+    o.connect(g); g.connect(c.destination); o.frequency.value = 880; g.gain.value = 0.15;
+    o.start(); o.stop(c.currentTime + 0.5);
+  } catch (e) { }
+}
+function finishTimer(completed) {
+  const t = S.timer;
+  const elapsed = completed ? t.mins : Math.floor((t.mins * 60000 - timerLeft()) / 60000);
+  logSession(elapsed, t.subj);
+  t.state = "idle"; t.end = 0; t.left = 0;
+  save();
+  if (completed) { beep(); toast("Session complete: " + t.mins + " min logged"); }
+  else toast(elapsed >= 1 ? elapsed + " min logged" : "Under a minute, nothing logged");
+  renderCurrent(); renderHeader();
+}
+function tickTimer() {
+  if (S.timer.state === "run") {
+    if (timerLeft() <= 0) finishTimer(true); else updateClock();
+  }
+}
+
+/* ---------- MOCKS TAB ---------- */
+const MAXS = { h: 100, t: 30, o: 20 };
+function mockTotal(m) { return m.h + m.t + m.o; }
+function mockChart() {
+  const list = S.mocks.slice(-10);
+  const W = 420, H = 190, pt = 18, pb = 24, pl = 4, MAX = 150;
+  const bw = Math.min(44, (W - pl * 2) / list.length - 8), step = (W - pl * 2) / list.length;
+  const y = v => H - pb - (v / MAX) * (H - pb - pt);
+  let s = '<svg class="chart" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Mock test totals out of 150">' +
+    '<line class="axis" x1="0" x2="' + W + '" y1="' + (H - pb) + '" y2="' + (H - pb) + '"/>';
+  list.forEach((m, i) => {
+    const tot = mockTotal(m), bx = pl + i * step + (step - bw) / 2, by = y(tot), last = i === list.length - 1;
+    s += '<rect class="b' + (last ? " cur" : "") + '" x="' + bx.toFixed(1) + '" y="' + by.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (H - pb - by).toFixed(1) + '" rx="3"/>' +
+      '<text class="val" x="' + (bx + bw / 2).toFixed(1) + '" y="' + (by - 4).toFixed(1) + '" text-anchor="middle">' + tot + "</text>" +
+      '<text class="lbl" x="' + (bx + bw / 2).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(m.name.length > 8 ? m.name.slice(0, 7) + "…" : m.name) + "</text>";
+  });
+  s += '<line class="goal" x1="0" x2="' + W + '" y1="' + y(S.target).toFixed(1) + '" y2="' + y(S.target).toFixed(1) + '"/></svg>';
+  return s;
+}
+function mockStats() {
+  const l = S.mocks; if (!l.length) return "";
+  const tots = l.map(mockTotal), best = Math.max(...tots), avg = Math.round(tots.reduce((a, b) => a + b, 0) / tots.length);
+  const sec = [["h", "Hindi"], ["t", "Teaching"], ["o", "Other skills"]].map(k => ({ n: k[1], p: l.reduce((a, m) => a + m[k[0]], 0) / l.length / MAXS[k[0]] }));
+  const weak = sec.slice().sort((a, b) => a.p - b.p)[0];
+  const last = tots[tots.length - 1], gap = S.target - last;
+  return '<div class="grid4">' +
+    '<div class="stat"><div class="label">Latest</div><div class="v">' + last + '</div><div class="d">out of 150 · ' + (gap > 0 ? gap + " below target" : "target met") + "</div></div>" +
+    '<div class="stat"><div class="label">Best</div><div class="v">' + best + '</div><div class="d">out of 150</div></div>' +
+    '<div class="stat"><div class="label">Average</div><div class="v">' + avg + '</div><div class="d">' + l.length + " mock" + (l.length > 1 ? "s" : "") + "</div></div>" +
+    '<div class="stat"><div class="label">Weakest section</div><div class="v" style="font-size:1.2rem;padding-top:6px">' + esc(weak.n) + '</div><div class="d">averaging ' + Math.round(weak.p * 100) + "% of its marks</div></div></div>";
+}
+function renderMocks() {
+  const rows = S.mocks.slice().reverse().map(m => {
+    const tot = mockTotal(m);
+    return "<tr><td>" + esc(m.name) + "</td><td>" + fmt(m.date) + '</td><td class="n">' + m.h + '</td><td class="n">' + m.t + '</td><td class="n">' + m.o + '</td><td class="n"><b>' + tot + '</b></td><td class="n">' + Math.round(tot / 150 * 100) + '%</td><td><button class="btn sm" type="button" data-act="delMock" data-id="' + m.id + '" aria-label="Delete ' + esc(m.name) + '">Delete</button></td></tr>';
+  }).join("");
+  const mc = {}; S.mistakes.forEach(x => { mc[x.topic] = (mc[x.topic] || 0) + 1; });
+  const top = Object.keys(mc).sort((a, b) => mc[b] - mc[a]).slice(0, 3);
+  const opts = '<option value="other">Other or general</option>' + TOPICS.map(t => '<option value="' + t.id + '">' + esc(t.hi) + "</option>").join("");
+  $("#p-mocks").innerHTML = mockStats() +
+    '<div class="grid2"><div class="card"><h3>Log a mock test</h3>' +
+      '<div class="formgrid"><label class="field"><span>Name</span><input id="mkName" value="Mock ' + (S.mocks.length + 1) + '" maxlength="40"></label>' +
+      '<label class="field"><span>Date</span><input type="date" id="mkDate" value="' + todayS() + '"></label>' +
+      '<label class="field"><span>Hindi (of 100)</span><input type="number" id="mkH" min="0" max="100" inputmode="numeric"></label>' +
+      '<label class="field"><span>Teaching (of 30)</span><input type="number" id="mkT" min="0" max="30" inputmode="numeric"></label>' +
+      '<label class="field"><span>Other skills (of 20)</span><input type="number" id="mkO" min="0" max="20" inputmode="numeric"></label></div>' +
+      '<div class="row" style="margin-top:10px"><button class="btn primary" type="button" data-act="addMock">Add mock</button><span class="err" id="mkErr"></span></div></div>' +
+    '<div class="card"><h3>Score trend</h3>' + (S.mocks.length ? mockChart() + '<p class="small muted" style="margin-top:4px">Dashed line is your target of ' + S.target + ".</p>" : '<p class="muted">Your scores will chart here after the first mock. Mock 1 is planned for Day 26.</p>') +
+      '<label class="field" style="max-width:200px;margin-top:12px"><span>Target score (of 150)</span><input type="number" id="targetIn" min="1" max="150" value="' + S.target + '"></label></div></div>' +
+    '<div class="card"><h3>Results</h3>' + (S.mocks.length ? '<div class="scroll"><table><thead><tr><th>Test</th><th>Date</th><th class="n">Hindi</th><th class="n">Teach</th><th class="n">Other</th><th class="n">Total</th><th class="n">%</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>" : '<p class="muted">No mocks logged yet.</p>') + "</div>" +
+    '<div class="card"><h3>Mistake log</h3><p class="small muted" style="margin-bottom:10px">Write each wrong answer as a rule you will remember. Repeat mistakes show up below.</p>' +
+      '<div class="row"><select id="msTopic" aria-label="Topic">' + opts + '</select><input id="msTxt" style="flex:1 1 220px" placeholder="e.g. Confused karamdharay with bahuvrihi" maxlength="200" aria-label="Mistake"><button class="btn" type="button" data-act="addMistake">Add</button></div>' +
+      (top.length ? '<p class="small" style="margin-top:10px">Most repeated: ' + top.map(k => esc(k === "other" ? "Other" : TOPIC[k].hi) + " (" + mc[k] + ")").join(", ") + "</p>" : "") +
+      '<div style="margin-top:8px">' + (S.mistakes.length ? S.mistakes.slice().reverse().map(x => '<div class="sess"><span><span class="small muted">' + fmt(x.date) + " · " + esc(x.topic === "other" ? "Other" : TOPIC[x.topic].hi) + "</span><br>" + esc(x.text) + '</span><button class="btn sm" type="button" data-act="delMistake" data-id="' + x.id + '" aria-label="Delete this mistake">Delete</button></div>').join("") : '<p class="muted">Nothing logged yet.</p>') + "</div></div>";
+}
+/* ---------- GUIDE TAB ---------- */
+function renderGuide() {
+  const blocks = [
+    ["Hindi", "100 marks", "Grammar and language (sandhi, samas, precis, technical terms, idioms, proverbs, sentence usage and correction, phrases, voice, sentence types) and poetics (shabd-shakti, alankar, chhand, kavya-gun, ras)."],
+    ["Art of Teaching", "30 marks", "Teaching and learning, objectives and Bloom, methods, lesson plans, microteaching, classroom climate, textbooks and library, teacher qualities, evaluation, curriculum, aids."],
+    ["Other skills", "20 marks", "General knowledge, environmental science, mathematical aptitude and logical reasoning."]
+  ];
+  $("#p-guide").innerHTML =
+    '<div class="card guide"><h2>How this plan works</h2>' +
+    '<p class="muted" style="margin-top:6px">This planner covers Bihar STET Paper I, Hindi (subject code 101). The exam has 150 marks. The plan spends about 3.5 to 4.5 hours a day for 30 days and puts the most hours where the most marks are.</p>' +
+    '<div class="blocks" style="margin-top:14px">' + blocks.map(b => '<div class="blk"><div><b>' + b[0] + '</b><br><span class="small muted">' + b[1] + "</span></div><div>" + b[2] + "</div></div>").join("") + "</div></div>" +
+    '<div class="grid2"><div class="card guide"><h3>The four phases</h3><ul>' +
+      Object.keys(PHASES).map(k => "<li><b>" + PHASES[k].n + "</b> (" + PHASES[k].r + "): " + PHASES[k].d + "</li>").join("") + "</ul></div>" +
+    '<div class="card guide"><h3>A daily routine that works</h3><ul>' +
+      "<li>Study the hardest Hindi topic first, while you are fresh.</li><li>Do the teaching block next, then the other-skills block.</li><li>Finish with 30 minutes of practice questions on today's Hindi topic.</li>" +
+      "<li>Write every wrong answer in the mistake log as a rule.</li><li>Tick the tasks off as you finish them. The OMR sheet on the Overview tab fills in.</li></ul></div></div>" +
+    '<div class="grid2"><div class="card guide"><h3>Using the tracker</h3><ul>' +
+      "<li><b>Overview</b> shows today's tasks, streak, time logged and what needs attention.</li><li><b>30-day plan</b> lists every day with filters by week, subject and status, and a notes box per day.</li>" +
+      "<li><b>Syllabus</b> lists every topic with a status, a weak/okay/strong rating and a checklist of what to cover.</li><li><b>Focus timer</b> logs study time and charts the last 7 days.</li>" +
+      "<li><b>Mock tests</b> records section scores, charts the trend and keeps a mistake log.</li></ul></div>" +
+    '<div class="card guide"><h3>If you fall behind</h3><ul>' +
+      "<li>Use \"push plan by 1 day\" on the Overview tab. All dates shift and your ticks stay.</li><li>Never skip the Day 26, 28 and 29 mocks. They are worth more than new reading.</li>" +
+      "<li>If a topic is slipping, drop the 30-minute practice block first, not the study block.</li></ul></div></div>" +
+    '<div class="card guide"><h3>Sharing and saving</h3><ul>' +
+      "<li>Your progress is saved in this browser on this device. It does not sync between devices.</li><li>Use Share &amp; backup (top right) to copy a progress summary or a backup code, and to restore a code on another device.</li>" +
+      "<li>Anyone you send the link to starts with a fresh copy of the plan.</li><li>Check the official Bihar STET notification for the exam date, duration and marking scheme.</li></ul></div>";
+}
+
+/* ---------- RENDER + ROUTER ---------- */
+const RENDER = { overview: renderOverview, plan: renderPlan, syllabus: renderSyllabus, focus: renderFocus, mocks: renderMocks, guide: renderGuide };
+function renderCurrent() { RENDER[ui.tab](); }
+function setTab(t, noScroll) {
+  ui.tab = t;
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
+  Object.keys(RENDER).forEach(k => { $("#p-" + k).hidden = k !== t; });
+  renderCurrent(); renderHeader();
+  try { if (location.hash !== "#" + t) history.replaceState(null, "", "#" + t); } catch (e) { }
+  if (!noScroll) window.scrollTo(0, 0);
+}
+function goDay(n) {
+  ui.week = "all"; ui.sf = "all"; ui.st = "all"; ui.open.add(n);
+  setTab("plan", true);
+  const el = $("#day-" + n);
+  if (el) el.scrollIntoView({ block: "start" });
+}
+function goTopic(id) {
+  ui.sylF = "all"; ui.q = ""; ui.sylOpen.add(id);
+  setTab("syllabus", true);
+  const el = $("#topic-" + id);
+  if (el) el.scrollIntoView({ block: "center" });
+}
+
+/* ---------- SHARE ---------- */
+function summaryText() {
+  const T = totals(), cd = curDay();
+  const best = S.mocks.length ? Math.max(...S.mocks.map(mockTotal)) : null;
+  return "STET Hindi 30-day plan\n" +
+    (cd >= 1 && cd <= 30 ? "Day " + cd + " of 30\n" : "") +
+    "Plan done: " + T.pct + "% (" + T.done + " of " + T.total + " tasks)\n" +
+    "Topics studied: " + T.studied + " of " + TOPICS.length + ", revised " + T.revised + "\n" +
+    "Study time logged: " + hrs(T.logged) + " h\n" +
+    "Streak: " + T.streak + " day" + (T.streak === 1 ? "" : "s") + "\n" +
+    "Mocks: " + S.mocks.length + (best !== null ? ", best " + best + "/150" : "");
+}
+function encodeBackup() {
+  try { return btoa(unescape(encodeURIComponent(JSON.stringify(S)))); } catch (e) { return ""; }
+}
+function openShare() {
+  $("#sumTxt").value = summaryText(); $("#codeTxt").value = encodeBackup();
+  $("#restoreTxt").value = ""; $("#restoreErr").textContent = "";
+  ui.resetArm = false; $("#resetBtn").textContent = "Reset all progress";
+  $("#shareOv").hidden = false; $("#shareBtn").blur();
+  const c = document.querySelector("#shareOv [data-act=closeShare]"); if (c) c.focus();
+}
+function closeShare() { $("#shareOv").hidden = true; $("#shareBtn").focus(); }
+function restoreBackup() {
+  const raw = $("#restoreTxt").value.trim(), err = $("#restoreErr");
+  if (!raw) { err.textContent = "Paste a backup code first."; return; }
+  try {
+    const o = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if (!o || typeof o !== "object" || typeof o.done !== "object" || !o.start) throw 0;
+    S = Object.assign(defaults(), o); S.timer = Object.assign(defaults().timer, o.timer || {});
+    save(); closeShare(); setTab(ui.tab, true); toast("Progress restored");
+  } catch (e) { err.textContent = "That code is not valid. Copy the whole code and try again."; }
+}
+
+/* ---------- EVENTS ---------- */
+function mark(id, on) {
+  if (on) S.done[id] = todayS(); else delete S.done[id];
+}
+const ACT = {
+  task(el) { const id = el.dataset.id; mark(id, !S.done[id]); save(); renderCurrent(); keepFocus(el); },
+  goDay(el) { goDay(+el.dataset.n); },
+  goTopic(el) { goTopic(el.dataset.id); },
+  toggleDay(el) { const n = +el.dataset.n; ui.open.has(n) ? ui.open.delete(n) : ui.open.add(n); renderPlan(); keepFocus(el); },
+  dayAll(el) {
+    const d = DAYS[+el.dataset.n - 1], full = dayStats(d).full;
+    d.tasks.forEach(t => mark(t.id, !full)); save(); renderPlan(); keepFocus(el);
+  },
+  filter(el) {
+    const g = el.dataset.g, v = el.dataset.v;
+    ui[g] = v; if (g === "week" && v !== "all") WEEKS[v] && DAYS.forEach(d => { if (d.n >= WEEKS[v][0] && d.n <= WEEKS[v][1] && d.n === Math.max(1, Math.min(30, curDay()))) ui.open.add(d.n); });
+    renderCurrent(); keepFocus(el);
+  },
+  status(el) { const id = el.dataset.id, st = topicState(id); S.topics[id] = { s: (st.s + 1) % 3, c: st.c }; save(); renderSyllabus(); keepFocus(el); },
+  conf(el) { const id = el.dataset.id, st = topicState(id), c = +el.dataset.c; S.topics[id] = { s: st.s, c: st.c === c ? 0 : c }; save(); renderSyllabus(); keepFocus(el); },
+  push() { S.start = addDays(S.start, 1); save(); renderOverview(); renderHeader(); toast("Plan pushed by 1 day"); },
+  tLen(el) { S.timer.mins = +el.dataset.m; save(); renderFocus(); keepFocus(el); },
+  tStart() { const t = S.timer; t.state = "run"; t.end = Date.now() + t.mins * 60000; save(); renderFocus(); },
+  tPause() { const t = S.timer; t.left = timerLeft(); t.state = "pause"; save(); renderFocus(); },
+  tResume() { const t = S.timer; t.end = Date.now() + t.left; t.state = "run"; save(); renderFocus(); },
+  tFinish() { finishTimer(false); },
+  tDiscard() { const t = S.timer; t.state = "idle"; t.end = 0; t.left = 0; save(); renderFocus(); toast("Timer discarded"); },
+  manAdd() {
+    const m = +$("#manMin").value, err = $("#manErr");
+    if (!(m >= 1 && m <= 600)) { err.textContent = "Enter minutes between 1 and 600."; return; }
+    logSession(m, $("#manSubj").value); save(); renderFocus(); renderHeader(); toast(m + " min added");
+  },
+  delSess(el) { S.sessions = S.sessions.filter(x => x.id !== el.dataset.id); save(); renderFocus(); },
+  addMock() {
+    const err = $("#mkErr"), v = id => $(id).value.trim();
+    const h = v("#mkH"), t = v("#mkT"), o = v("#mkO");
+    if (h === "" || t === "" || o === "") { err.textContent = "Fill all three section scores."; return; }
+    const m = { id: uid(), name: v("#mkName") || "Mock " + (S.mocks.length + 1), date: v("#mkDate") || todayS(), h: +h, t: +t, o: +o };
+    if (!(m.h >= 0 && m.h <= 100 && m.t >= 0 && m.t <= 30 && m.o >= 0 && m.o <= 20)) { err.textContent = "Scores must be within 100, 30 and 20."; return; }
+    S.mocks.push(m); S.mocks.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0); save(); renderMocks(); toast("Mock added: " + mockTotal(m) + " of 150");
+  },
+  delMock(el) { S.mocks = S.mocks.filter(x => x.id !== el.dataset.id); save(); renderMocks(); },
+  addMistake() {
+    const txt = $("#msTxt").value.trim(); if (!txt) { toast("Write the mistake first"); return; }
+    S.mistakes.push({ id: uid(), date: todayS(), topic: $("#msTopic").value, text: txt }); save(); renderMocks(); toast("Added to mistake log");
+  },
+  delMistake(el) { S.mistakes = S.mistakes.filter(x => x.id !== el.dataset.id); save(); renderMocks(); },
+  closeShare() { closeShare(); },
+  copySum() { copyText($("#sumTxt").value, $("#sumTxt"), "Summary copied"); },
+  copyCode() { copyText($("#codeTxt").value, $("#codeTxt"), "Backup code copied"); },
+  restore() { restoreBackup(); },
+  reset() {
+    const b = $("#resetBtn");
+    if (!ui.resetArm) { ui.resetArm = true; b.textContent = "Tap again to erase everything"; return; }
+    S = defaults(); save(); closeShare(); setTab("overview"); toast("Progress cleared");
+  }
+};
+function keepFocus(el) {
+  /* re-render replaces nodes; restore focus to the same control */
+  const sel = [];
+  ["act", "id", "n", "g", "v", "c", "m"].forEach(k => { if (el.dataset && el.dataset[k] !== undefined) sel.push("[data-" + k + '="' + el.dataset[k] + '"]'); });
+  const n = document.querySelector("#p-" + ui.tab + " " + sel.join(""));
+  if (n) n.focus({ preventScroll: true });
+}
+
+document.addEventListener("click", e => {
+  const tab = e.target.closest(".tab"); if (tab) { setTab(tab.dataset.tab); return; }
+  const a = e.target.closest("[data-act]"); if (!a) return;
+  const f = ACT[a.dataset.act]; if (f) f(a);
+});
+document.addEventListener("input", e => {
+  const el = e.target;
+  if (el.dataset && el.dataset.note) { S.notes[el.dataset.note] = el.value; save(); }
+  else if (el.id === "sylQ") { ui.q = el.value; const pos = el.selectionStart; renderSyllabus(); const n = $("#sylQ"); n.focus(); try { n.setSelectionRange(pos, pos); } catch (x) { } }
+});
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.id === "startIn" && el.value) { S.start = el.value; save(); renderOverview(); renderHeader(); }
+  else if (el.id === "examIn") { S.exam = el.value; save(); renderOverview(); }
+  else if (el.id === "goalIn") { const v = +el.value; if (v >= 1 && v <= 14) { S.goal = v; save(); renderFocus(); } }
+  else if (el.id === "targetIn") { const v = +el.value; if (v >= 1 && v <= 150) { S.target = v; save(); renderMocks(); } }
+  else if (el.id === "tCustom") { const v = Math.round(+el.value); if (v >= 1 && v <= 240) { S.timer.mins = v; save(); renderFocus(); } }
+  else if (el.id === "tSubj") { S.timer.subj = el.value; save(); }
+});
+document.addEventListener("toggle", e => {
+  const d = e.target; if (d.matches && d.matches("details.pts")) { d.open ? ui.sylOpen.add(d.dataset.id) : ui.sylOpen.delete(d.dataset.id); }
+}, true);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#shareOv").hidden) closeShare(); });
+$("#shareOv").addEventListener("click", e => { if (e.target.id === "shareOv") closeShare(); });
+$("#shareBtn").addEventListener("click", openShare);
+
+/* ---------- THEME ---------- */
+function applyTheme() {
+  const r = document.documentElement;
+  if (S.theme) r.setAttribute("data-theme", S.theme); else r.removeAttribute("data-theme");
+}
+$("#themeBtn").addEventListener("click", () => {
+  const dark = S.theme ? S.theme === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  S.theme = dark ? "light" : "dark"; save(); applyTheme();
+});
+
+/* ---------- START ---------- */
+load(); applyTheme();
+const hashTab = (location.hash || "").slice(1);
+setTab(RENDER[hashTab] ? hashTab : "overview", true);
+setInterval(tickTimer, 500);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { tickTimer(); renderHeader(); } });
+</script>
+
+</body>
+</html>
